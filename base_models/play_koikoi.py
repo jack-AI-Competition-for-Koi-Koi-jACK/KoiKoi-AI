@@ -7,8 +7,8 @@ Created on Sat Jun 19 23:58:43 2021
 """
 
 import os
-from koikoigame.koikoigame.koikoigame import KoiKoiGameState
-from base_models.koikoilearn import AgentForTest
+from koikoigame.koikoigame import KoiKoiGameState
+from koikoilearn import AgentForTest
 
 # import koikoigui as gui
 import torch  # 1.8.1

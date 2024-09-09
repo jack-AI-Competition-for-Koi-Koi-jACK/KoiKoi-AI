@@ -1166,6 +1166,7 @@ class KoiKoiGameState(KoiKoiGameStateBase):
         observation["your_Dross"] = list(pile & KoiKoiCard.dross)
         observation["your_total_point"] = self.round_state.yaku_point(view)
         observation["koikoi"] = self.round_state.koikoi
+        observation['show'] = self.round_state.show
         observation["legal_action"] = self.legal_action
 
         return observation

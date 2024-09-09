@@ -16,6 +16,7 @@ class MyAgent(CustomAgentBase):
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
         # ランダムに取れる行動をする
+        print(observation)
         return random.choice(observation["legal_action"])
 
 
