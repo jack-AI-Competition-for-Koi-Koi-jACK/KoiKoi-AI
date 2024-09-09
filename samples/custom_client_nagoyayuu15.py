@@ -6,150 +6,289 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from client.client import SocketIOClient
 from client.agent import CustomAgentBase
 
-# 各カードについて取得できる確率をヒューリスティックで求める．
-def make_obtain_prob_table(observation):
-    m_remains = {
-        m: 4
-        for m in range(1,12+1)
-    }
-    
-    m_exists_on_hand = {
-        m: 0
-        for m in range(1,12+1)
-    }
-    
-    for c in observation['your_hand']:
-        m_exists_on_hand[c[0]] += 1
+from itertools import product
+from copy import deepcopy
 
-    m_exists_on_field = {
-        m: 0
-        for m in range(1,12+1)
-    }
+# 全札のリストを返す．
+# (参照渡しによって，書き換えが思わぬ範囲に影響を及ぼすことを嫌ってファクトリ関数を作っている)
+def card_set_factory(): return [[m,k] for m,k in product(range(1,12+1),range(1,4+1)) ] 
 
-    for c in observation['field']:
-        m_exists_on_field[c[0]] += 1
+# M_STATE:
+# 各月ごとに考える状態. 詳説すると，各5状態のその月の札が何枚あるかという数字の組．
+# 各5状態とは 自身の手札，場札，自身の取札, 不明，相手の取札
+# である．
+# 例えば2月の札が2枚手札にあり，2枚が不明な場合， 2月のM_STATEは (2,0,0,2,0)
 
-    num_of_unknown = 4*12
-    
-    num_of_opp_hand = 8 - (observation['turn']//2)
+def make_m_states(myHand, board, myObtained, unknown, opObtained):
+    m_states = {m:[0,0,0,0,0] for m in range(1,12+1)} # 各月がキー
+    for c in myHand: m_states[c[0]][0] += 1
+    for c in board: m_states[c[0]][1] += 1
+    for c in myObtained: m_states[c[0]][2] += 1
+    for c in unknown: m_states[c[0]][3] += 1
+    for c in opObtained: m_states[c[0]][4] += 1
+    return {m:tuple(m_states[m]) for m in m_states}
 
-    # 今後自分がその札を引ける確率
-    own_obtain_prob_table = {
-        [m,i]: None
-        for i in range(1,4+1) 
-        for m in range(1,12+1)
-    }
+def calcObtainProb(
+    myHand:List[List[int]], 
+    board:List[List[int]], 
+    myObtained:List[List[int]], 
+    unknown:List[List[int]], 
+    opObtained:List[List[int]], 
+    hold:List[int], 
+    pick:List[int]
+):
+    ownObtainRateTable = { c: 0.0 for c in card_set_factory() }
+    opObtainRateTable =  { c: 0.0 for c in card_set_factory() }
+    m_states = make_m_states(myHand, board, myObtained, unknown, opObtained)
+    
+    # 怒涛のハードコード
+    for m in m_states:
+        m_state = m_states[m]
+        if   m_state == (2, 0, 0, 2, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 0.45357264829215155
+                opObtainRateTable[card]  = 0.21309401837451517
+        elif m_state == (0, 1, 2, 1, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in myObtained:
+                    ownObtainRateTable[card] = 1.0
+                    opObtainRateTable[card]  = 0.0
+                else:
+                    ownObtainRateTable[card] = 0.27208588957055213
+                    opObtainRateTable[card]  = 0.7279141104294479
+        elif m_state == (3, 1, 0, 0, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 1.0
+                opObtainRateTable[card]  = 0.0
+        elif m_state == (2, 0, 2, 0, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 1.0
+                opObtainRateTable[card]  = 0.0
+        elif m_state == (0, 1, 0, 1, 2):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in opObtained:
+                    ownObtainRateTable[card] = 0.0
+                    opObtainRateTable[card]  = 1.0
+                else:
+                    ownObtainRateTable[card] = 0.3378726536621273
+                    opObtainRateTable[card]  = 0.6621273463378726
+        elif m_state == (1, 0, 0, 3, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 0.35792053127308526
+                opObtainRateTable[card]  = 0.3087461353935814
+        elif m_state == (0, 0, 2, 2, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in myObtained:
+                    ownObtainRateTable[card] = 1.0
+                    opObtainRateTable[card]  = 0.0
+                else:
+                    ownObtainRateTable[card] = 0.2677608248519451
+                    opObtainRateTable[card]  = 0.7322391751480549
+        elif m_state == (0, 0, 0, 4, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 0.1861675039808919
+                opObtainRateTable[card]  = 0.48049916268577464
+        elif m_state == (2, 0, 0, 0, 2):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in myHand:
+                    ownObtainRateTable[card] = 1.0
+                    opObtainRateTable[card]  = 0.0
+                else:
+                    ownObtainRateTable[card] = 0.0
+                    opObtainRateTable[card]  = 1.0
+        elif m_state == (3, 0, 0, 1, 0):
+            if hold in [[m,1],[m,2],[m,3],[m,4]]:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    if card in myHand and card != hold:
+                        ownObtainRateTable[card] = 1.0
+                        opObtainRateTable[card]  = 0.0
+                    else:
+                        ownObtainRateTable[card] = 0.6522756129287073
+                        opObtainRateTable[card]  = 0.3477243870712926
+            else:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    if card in myHand:
+                        ownObtainRateTable[card] = 0.8840918709762358
+                        opObtainRateTable[card]  = 0.1159081290237642
+                    else:
+                        ownObtainRateTable[card] = 0.6522756129287073
+                        opObtainRateTable[card]  = 0.3477243870712926
+        elif m_state == (1, 1, 0, 2, 0):
+            if hold in [[m,1],[m,2],[m,3],[m,4]]:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    if card in myHand or card in board:
+                        ownObtainRateTable[card] = 1.0
+                        opObtainRateTable[card]  = 0.0
+                    else:
+                        ownObtainRateTable[card] = 0.2677608248519451
+                        opObtainRateTable[card]  = 0.7322391751480549
+            else:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    ownObtainRateTable[card] = 0.3672518987681677
+                    opObtainRateTable[card]  = 0.2994147678984989
+        elif m_state == (2, 2, 0, 0, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 1.0
+                opObtainRateTable[card]  = 0.0
+        elif m_state == (0, 0, 2, 0, 2):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in myObtained:
+                    ownObtainRateTable[card] = 1.0
+                    opObtainRateTable[card]  = 0.0
+                else:
+                    ownObtainRateTable[card] = 0.0
+                    opObtainRateTable[card]  = 1.0
+        elif m_state == (0, 0, 0, 2, 2):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in opObtained:
+                    ownObtainRateTable[card] = 0.0
+                    opObtainRateTable[card]  = 1.0
+                else:
+                    ownObtainRateTable[card] = 0.33479308520426937
+                    opObtainRateTable[card]  = 0.6652069147957306
+        elif m_state == (1, 3, 0, 0, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 1.0
+                opObtainRateTable[card]  = 0.0
+        elif m_state == (1, 0, 0, 1, 2):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in opObtained:
+                    ownObtainRateTable[card] = 0.0
+                    opObtainRateTable[card]  = 1.0
+                else:
+                    ownObtainRateTable[card] = 0.6726046223786418
+                    opObtainRateTable[card]  = 0.32739537762135806
+        elif m_state == (1, 1, 2, 0, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 1.0
+                opObtainRateTable[card]  = 0.0
+        elif m_state == (1, 1, 0, 0, 2):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in myHand or card in board:
+                    ownObtainRateTable[card] = 1.0
+                    opObtainRateTable[card]  = 0.0
+                else:
+                    ownObtainRateTable[card] = 0.0
+                    opObtainRateTable[card]  = 1.0
+        elif m_state == (0, 2, 0, 2, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 0.19892253086676845
+                opObtainRateTable[card]  = 0.4677441357998982
+        elif m_state == (1, 2, 0, 1, 0):
+            if hold in [[m,1],[m,2],[m,3],[m,4]]:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    if card in myHand or card == pick:
+                        ownObtainRateTable[card] = 1.0
+                        opObtainRateTable[card]  = 0.0
+                    else:
+                        ownObtainRateTable[card] = 0.27208588957055213
+                        opObtainRateTable[card]  = 0.7279141104294479
+            else:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    if card in myHand:
+                        ownObtainRateTable[card] = 1.0
+                        opObtainRateTable[card]  = 0.0
+                    else:
+                        ownObtainRateTable[card] = 0.26882163144739835
+                        opObtainRateTable[card]  = 0.7311783685526017
+        elif m_state == (0, 0, 4, 0, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 1.0
+                opObtainRateTable[card]  = 0.0
+        elif m_state == (0, 3, 0, 1, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 0.30808080808080807
+                opObtainRateTable[card]  = 0.6919191919191919
+        elif m_state == (0, 0, 0, 0, 4):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 0.0
+                opObtainRateTable[card]  = 1.0
+        elif m_state == (1, 0, 2, 1, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                if card in myObtained:
+                    ownObtainRateTable[card] = 1.0
+                    opObtainRateTable[card]  = 0.0
+                else:
+                    ownObtainRateTable[card] = 0.6563044715704256
+                    opObtainRateTable[card]  = 0.34369552842957435
+        elif m_state == (0, 1, 0, 3, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 0.1874217172531972
+                opObtainRateTable[card]  = 0.47924494941346946
+        elif m_state == (2, 1, 0, 1, 0):
+            if hold in [[m,1],[m,2],[m,3],[m,4]]:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    if card == hold or card in board:
+                        ownObtainRateTable[card] = 1.0
+                        opObtainRateTable[card]  = 0.0
+                    else:
+                        ownObtainRateTable[card] = 0.6563044715704256
+                        opObtainRateTable[card]  = 0.34369552842957435
+            else:
+                for card in [[m,1],[m,2],[m,3],[m,4]]:
+                    ownObtainRateTable[card] = 0.5608369778099601
+                    opObtainRateTable[card]  = 0.4391630221900399
+        elif m_state == (4, 0, 0, 0, 0):
+            for card in [[m,1],[m,2],[m,3],[m,4]]:
+                ownObtainRateTable[card] = 1.0
+                opObtainRateTable[card]  = 0.0
+    return ownObtainRateTable,opObtainRateTable
 
-    # 自分がその札を捨てた/残したときに相手がその札を取れる確率
-    opp_obtain_prob_table = {
-        [m,i]: None
-        for i in range(1,4+1) 
-        for m in range(1,12+1)
-    }
-    
-    cards_in_own_obtained \
-    = list(set( observation['your_Dross']
-    + observation['your_Ribbon']
-    + observation['your_Seed']
-    + observation['your_Light']))
-    
-    for c in cards_in_own_obtained:
-        own_obtain_prob_table[c] = 1
-        opp_obtain_prob_table[c] = 0
-        m_remains[c[0]] -= 1
-        num_of_unknown -= 1
-    
-    cards_in_opp_obtained = observation['op_pile']
+def calcYakuProb(myObtainProb, opObtainProb):
+    pass
 
-    for c in cards_in_opp_obtained:
-        own_obtain_prob_table[c] = 0
-        opp_obtain_prob_table[c] = 1
-        m_remains[c[0]] -= 1
-        num_of_unknown -= 1
-    
-    for c in own_obtain_prob_table:
-        if   m_remains[c[0]] == 0: continue
-        elif m_remains[c[0]] == 2: 
-            if m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 2:
-                # unknown 0
-                own_obtain_prob_table[c] = 1 
-                opp_obtain_prob_table[c] = 0
-            elif m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 1:
-                # unknown 1 
-                # 残り一枚が山札にある確率 ( 山札 / 山札+相手の手札 )
-                # * 山札を相手，自分に半分に振り分けるとして，自身の方に入る確率 ( 1/2 )
-                pile = num_of_unknown - num_of_opp_hand
-                in_pile = pile / num_of_unknown
-                own_obtain_prob_table[c] = in_pile/2
-                # 残り一枚が山札にある確率 ( 山札 / 山札+相手の手札 )
-                # * 山札を相手，自分に半分に振り分けるとして，相手の方に入る確率 ( 1/2 )
-                # + 残り一枚が相手手札にある確率 ( 1 - 山札/(山札+相手の手札) )
-                opp_obtain_prob_table[c] = 1 - in_pile/2
-            elif m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 0:
-                # unknown 2
-                # 二枚とも山札にある確率 ( 山札C2 / (山札+相手の手札)C2 )
-                # * 山札を相手，自分に半分に振り分けるとして，自身の方に入る確率 ( (山札/2)C2 / 山札C2 )
-                # 山札C2がキャンセルされる．またCombinationの分母もキャンセルされることに注意する．
-                unknownC2 = num_of_unknown*(num_of_unknown-1)#/2
-                pile = num_of_unknown - num_of_opp_hand
-                half_pile = pile//2
-                half_pileC2 = half_pile*(half_pile - 1)#/2
-                own_obtain_prob_table[c] = half_pileC2/unknownC2
-                # 二枚とも山札にある確率 ( 山札C2 / (山札+相手の手札)C2 )
-                # * 山札を相手，自分に半分に振り分けるとして，自身の方に入る確率 ( (山札/2)C2 / 山札C2 )
-                # + 相手が一枚以上持っている確率 ( 1 - 山札C2/(山札+相手の手札)C2 )
-                pileC2 = pile*(pile - 1)#/2
-                opp_obtain_prob_table[c] = half_pileC2/unknownC2 + 1 - pileC2/unknownC2
-        elif m_remains[c[0]] == 4: 
-            if m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 4:
-                # unknown 0
-                own_obtain_prob_table[c] = 1
-                opp_obtain_prob_table[c] = 0
-            elif m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 3:
-                # unknown 1
-                if m_exists_on_hand[c[0]] > 0:
-                    # 残り一枚が山札にある確率 ( 山札 / 山札+相手の手札 )
-                    # * 山札を相手，自分に半分に振り分けるとして，自身の方に入る確率 ( 1/2 )
-                    # /2
-                    # + 1/2
-                    in_pile = (num_of_unknown - num_of_opp_hand) / num_of_unknown
-                    own_obtain_prob_table[c] = in_pile/4 + 1/2
-                    # 残り一枚が山札にある確率 ( 山札 / 山札+相手の手札 )
-                    # * 山札を相手，自分に半分に振り分けるとして，相手の方に入る確率 ( 1/2 )
-                    # + 残り一枚が相手の手札にある確率 ( 1 - 山札 / 山札+相手の手札 )
-                    opp_obtain_prob_table[c] = 1 - in_pile/2
-                else: 
-                    # 残り一枚が山札にある確率 ( 山札 / 山札+相手の手札 )
-                    # * 山札を相手，自分に半分に振り分けるとして，自身の方に入る確率 ( 1/2 )
-                    in_pile = (num_of_unknown - num_of_opp_hand) / num_of_unknown
-                    own_obtain_prob_table[c] = in_pile/2
-                    # 残り一枚が山札にある確率 ( 山札 / 山札+相手の手札 )
-                    # * 山札を相手，自分に半分に振り分けるとして，相手の方に入る確率 ( 1/2 )
-                    # + 残り一枚が相手の手札にある確率 ( 1 - 山札 / 山札+相手の手札 )
-                    opp_obtain_prob_table[c] = 1 - in_pile/2
-            elif m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 2:
-                if   m_exists_on_hand[c[0]] == 2: pass
-                    #相手が一枚以上持っている確率
-                elif m_exists_on_hand[c[0]] == 1: pass
-                    #相手が一枚以上持っている確率
-                elif m_exists_on_hand[c[0]] == 0: pass
-                    #相手が一枚以上持っている確率
-            elif m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 1:
-                if m_exists_on_hand[c[0]] == 1: pass
-                elif m_exists_on_hand[c[0]] == 0: pass
-            elif m_exists_on_hand[c[0]] + m_exists_on_field[c[0]] == 0: pass
-                # unknown 4
+# observationパーサー
+
+class Observation:
+    def __init__(self, observation):
+        self.observation = observation
+        self.hold = None
+        self.pick = None
+    @property
+    def myHand(self):
+        return list(set(self.observation['your_hand'] + [self._hold]))
+    @property
+    def board(self):
+        return list(set(self.observation['field'] + [self._pick]))
+    @property
+    def myObtained(self):
+        return list(set(
+              self.observation['your_Light']
+            + self.observation['your_Seed']
+            + self.observation['your_Ribbon']
+            + self.observation['your_Dross']
+        ))
+    @property
+    def opObtained(self):
+        return self.observation['op_pile']
+    @property
+    def unknown(self):
+        cardset = card_set_factory()
+        for c in self.myHand():
+            cardset.remove(c)
+        for c in self.board():
+            cardset.remove(c)
+        for c in self.myObtained():
+            cardset.remove(c)
+        for c in self.opObtained():
+            cardset.remove(c)
+        return cardset
 
 # CustomAgentBase を継承して，
 # custom_act()を編集してコイコイAIを実装してください．
 
-class MyAgent(CustomAgentBase):
-    def __init__(self):
-        super().__init__()
+from typing import List
 
+class MyAgent(CustomAgentBase):
+    hold: List[List[int]]
+    def __init__(self):
+        self.hold = None
+        super().__init__()
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
         # ランダムに取れる行動をする
+        self.hold = observation['turn']
+        observation
         return random.choice(observation['legal_action'])
 
 
