@@ -12,48 +12,48 @@ from client.agent import CustomAgentBase
 class MyAgent(CustomAgentBase):
     def __init__(self):
         super().__init__()
+
+    def find_matching_card(self, hand_cards, fields):
+        """手札のカードと一致する場札を探す"""
+        print('find_card関数が呼び出されました')
+        same_month = []
+        for hand_card in hand_cards:
+            for field_card in fields:
+                if hand_card[0] == field_card[0]:
+                    same_month.append(field_card)
+        print('一致する場札:', same_month)
+        
+        if len(same_month) == 1:
+            print('一致する場札が1枚見つかりました:', same_month[0])
+            return same_month[0]
+        
+        elif len(same_month) == 0:
+            # 一致する場札がない場合、ランダムで選ぶ
+            chosen_card = random.choice(hand_cards)
+            print('一致する場札がないため、ランダムで選ばれたカード:', chosen_card)
+            return chosen_card
+        else:
+            # 一致する場札が複数ある場合、点数の高いカードを選ぶ
+            same_month.sort(key=lambda x: x[1])
+            print('一致する場札が複数あるため、点数の高いカードを選びました:', same_month[0])
+            return same_month[0]
     
+    def should_koikoi(self, your_yaku, your_score, op_score):
+        """こいこいするかどうかを判断する"""
+        if your_yaku == []:
+            return False  # 役がない場合はこいこいしない
+        
+        total_yaku_points = sum(yaku[1] for yaku in your_yaku)
+        
+        # スコアが近い場合、より積極的にこいこいする
+        if abs(your_score - op_score) <= 3:
+            return True
+        
+        # スコアが離れている場合、より慎重にこいこいする
+        return False
+
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
-        
-        def find_matching_card(self, hand_cards, fields):
-            """手札のカードと一致する場札を探す"""
-            print('find_card関数が呼び出されました')
-            same_month = []
-            for hand_card in hand_cards:
-                for field_card in fields:
-                    if hand_card[0] == field_card[0]:
-                        same_month.append(field_card)
-            print('一致する場札:', same_month)
-            
-            if len(same_month) == 1:
-                print('一致する場札が1枚見つかりました:', same_month[0])
-                return same_month[0]
-            
-            elif len(same_month) == 0:
-                # 一致する場札がない場合、ランダムで選ぶ
-                chosen_card = random.choice(hand_cards)
-                print('一致する場札がないため、ランダムで選ばれたカード:', chosen_card)
-                return chosen_card
-            else:
-                # 一致する場札が複数ある場合、点数の高いカードを選ぶ
-                same_month.sort(key=lambda x: x[1])
-                print('一致する場札が複数あるため、点数の高いカードを選びました:', same_month[0])
-                return same_month[0]
-        
-        def should_koikoi(self, your_yaku, your_score, op_score):
-            """こいこいするかどうかを判断する"""
-            if your_yaku == []:
-                return False  # 役がない場合はこいこいしない
-            
-            total_yaku_points = sum(yaku[1] for yaku in your_yaku)
-            
-            # スコアが近い場合、より積極的にこいこいする
-            if abs(your_score - op_score) <= 3:
-                return True
-            
-            # スコアが離れている場合、より慎重にこいこいする
-            return False
         
         # 手札の情報を取得
         hand = observation['your_hand']
@@ -80,18 +80,16 @@ class MyAgent(CustomAgentBase):
         print('game_state', game_state)
         print('koikoi_situation', koikoi_situation)
         print('legal_actions', legal_actions)
-        print('--STATUS--')
+
         if game_state == 'discard':
-            return find.matching_card(self,hand, field)
+            return self.find_matching_card(self,hand, field)
         elif game_state == 'koikoi':
             if legal_actions[0] is not None:
-                return should_koikoi(self,your_yaku, your_score, op_score)
+                return self.should_koikoi(self,your_yaku, your_score, op_score)
             else:
                 return legal_actions[0]
         else:
             return random.choice(observation['legal_action'])
-
-        print('----------------------')
 
 
 if __name__ == "__main__":
@@ -116,4 +114,3 @@ if __name__ == "__main__":
         num_games=num_games,
     )
     sio_client.run()
-    # sio.client.enter_room()
