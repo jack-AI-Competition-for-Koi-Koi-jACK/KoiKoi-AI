@@ -41,35 +41,6 @@ from copy import deepcopy
 from itertools import product
 from typing import NamedTuple, List, Union
 
-class Card(NamedTuple):
-    month: int
-    variant: int
-    def __repr__(self):
-        return f"({self.month},{self.variant})"
-    def asList(self):
-        return [self.month, self.variant]
-
-def toCardList(obj: List[List[int]]):
-    return list(set( # avoids duplication
-        map(lambda card: Card(*card) ,obj) # castToCard
-    ))
-
-def unique(obj: List[Card]):
-    return list(set(obj))
-
-def getCardSet(): return [Card(m,k) for m,k in product(range(1,12+1),range(1,4+1))]
-
-class Pair(NamedTuple):
-    hold: Card
-    pick: Union[Card,None]
-    month: int
-    def __repr__(self):
-        return f"<{self.hold},{self.pick}>"
-
-def cardsFor(month: int):
-    return [Card(month,v) for v in range(1,4+1)]
-
-
 class Observation:
     GameStates = Literal['discard','discard-pick','draw','draw-pick','koikoi']
     _observation: dict
@@ -397,34 +368,6 @@ class CardProbTable:
 from itertools import product
 from typing import NamedTuple, List, Union
 
-class Card(NamedTuple):
-    month: int
-    variant: int
-    def __repr__(self):
-        return f"({self.month},{self.variant})"
-    def asList(self):
-        return [self.month, self.variant]
-
-def toCardList(obj: List[List[int]]):
-    return list(set( # avoids duplication
-        map(lambda card: Card(*card) ,obj) # castToCard
-    ))
-
-def unique(obj: List[Card]):
-    return list(set(obj))
-
-def getCardSet(): return [Card(m,k) for m,k in product(range(1,12+1),range(1,4+1))]
-
-class Pair(NamedTuple):
-    hold: Card
-    pick: Union[Card,None]
-    month: int
-    def __repr__(self):
-        return f"<{self.hold},{self.pick}>"
-
-def cardsFor(month: int):
-    return [Card(month,v) for v in range(1,4+1)]
-
 from typing import Literal, NamedTuple, Union, List
 
 class Evaluation(NamedTuple):
@@ -441,21 +384,17 @@ KASU_CARDS = [
     Card(11,4),Card(12,2),Card(12,3),Card(12,4),Card(9,1)
 ]
 
+def _contains(cards, pair):
+    if pair.pick in cards and pair.hold in cards: return 2
+    elif pair.pick in cards: return 1
+    elif pair.hold in cards: return 1
+    else: return 0
 def contains_tane(pair:Pair):
-    if pair.pick in TANE_CARDS and pair.hold in TANE_CARDS: return 2
-    elif pair.pick in TANE_CARDS: return 1
-    elif pair.hold in TANE_CARDS: return 1
-    else: return 0
+    return _contains(TANE_CARDS, pair)
 def contains_tann(pair:Pair):
-    if pair.pick in TAN_CARDS and pair.hold in TAN_CARDS: return 2
-    elif pair.pick in TAN_CARDS: return 1
-    elif pair.hold in TAN_CARDS: return 1
-    else: return 0
+    return _contains(TAN_CARDS, pair)
 def contains_kasu(pair:Pair):
-    if pair.pick in KASU_CARDS and pair.hold in KASU_CARDS: return 2
-    elif pair.pick in KASU_CARDS: return 1
-    elif pair.hold in KASU_CARDS: return 1
-    else: return 0
+    return _contains(KASU_CARDS, pair)
 
 class RoleProbTable:
     cardProbTable: CardProbTable
@@ -510,8 +449,8 @@ class RoleProbTable:
         evaluations = self.allEvaluations(own)
         gross = 0
         for ev in evaluations:
-            if ev.possibility == 'POSSIBLE':
-                gross += ev.distance
+            if ev.possibility == 'POSSIBLE': gross += ev.distance
+            elif ev.possibility == 'IMPOSSIBLE': gross += 100
         return gross
     def evaluateFiveLights(self, own: Literal['own', 'op']):
         return self.distanceToNecessaryCards(own, [Card(1,1),Card(3,1),Card(8,1),Card(11,1),Card(12,1)])
@@ -549,20 +488,17 @@ from typing import NamedTuple, List
 # CustomAgentBase を継承して，
 # custom_act()を編集してコイコイAIを実装してください．
 
-with open('log2','a') as f:
-    f.write('Agent loaded\n')
-
 class Score(NamedTuple):
     acm_score: float
-    opClosestRoleDistance: float
+    opGrossRoleDistance: float
     ownGrossRoleDistance: float
     pair: Pair
     def __lt__(self, other):
         # sortの都合上都合が良い方にTrueを返す
-        if self.opClosestRoleDistance - other.opClosestRoleDistance < 0.1: return False #selfが大きいほうが都合が良い
-        elif self.opClosestRoleDistance - other.opClosestRoleDistance > 0.1: return True
-        elif self.ownGrossRoleDistance - other.ownGrossRoleDistance < 0.1: return True #selfが小さいほうが都合が良い
-        elif self.ownGrossRoleDistance - other.ownGrossRoleDistance > 0.1: return False
+        if self.ownGrossRoleDistance - other.ownGrossRoleDistance < 0.0: return True #selfが小さいほうが都合が良い
+        elif self.ownGrossRoleDistance - other.ownGrossRoleDistance > 0.0: return False
+        elif self.opGrossRoleDistance - other.opClosestRoleDistance < 0.0: return False #selfが大きいほうが都合が良い
+        elif self.opGrossRoleDistance - other.opClosestRoleDistance > 0.0: return True
         elif self.acm_score > other.acm_score: return True #selfが大きいほうが都合が良い
         else: return False
 
@@ -585,10 +521,10 @@ class MyAgent(CustomAgentBase):
                 number_of_kasu = contains_kasu(pair)
                 number_of_tann = contains_tann(pair)
                 acm_score = number_of_tane*(9/5)+number_of_kasu*(10/5)+number_of_tann*(25/10)
-                opClosestRoleDistance = roleProbTable.minimumDistance('op')
+                grossDistance = roleProbTable.grossDistance('op')
                 ownGrossRoleDistance = roleProbTable.grossDistance('own')
                 scores.append(
-                    Score(acm_score, opClosestRoleDistance, ownGrossRoleDistance, pair)
+                    Score(acm_score, grossDistance, ownGrossRoleDistance, pair)
                 )
             selected = sorted(scores)[0]
             if _observation.state == 'discard':
