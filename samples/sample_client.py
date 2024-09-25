@@ -61,7 +61,7 @@ class MyAgent(CustomAgentBase):
         for le in legal_actions:
             if le == [1, 1]:
                 for fi in field:
-                    if fi == [1, 2] or [1, 3] or [1, 4]:
+                    if fi == [1, 2] or fi == [1, 3] or fi == [1, 4]:
                         print("1月の光とれた！")
                         return [1, 1]
         for fie in field:
@@ -74,7 +74,7 @@ class MyAgent(CustomAgentBase):
         for le in legal_actions:
             if le == [12, 1]:
                 for fi in field:
-                    if fi == [12, 2] or [12, 3] or [12, 4]:
+                    if fi == [12, 2] or fi == [12, 3] or fi == [12, 4]:
                         print("12月の光とれた！")
                         return [12, 1]
         for fie in field:
@@ -87,7 +87,7 @@ class MyAgent(CustomAgentBase):
         for le in legal_actions:
             if le == [11, 1]:
                 for fi in field:
-                    if fi == [11, 2] or [11, 3] or [11, 4]:
+                    if fi == [11, 2] or fi == [11, 3] or fi == [11, 4]:
                         print("11月の光とれた！")
                         return [11, 1]
         for fie in field:
@@ -99,28 +99,107 @@ class MyAgent(CustomAgentBase):
         print("光札とれなかった")
         return None
     
-    def inosikatyo_husegu(self, hand, field, legal_actions, your_yaku):
-        for yo in your_yaku:
-            if yo != [6, 1] and [7, 1] and [10, 1]:
+    def inosikatyo_husegu(self, hand, field, legal_actions, your_Seed):
+        for yo in your_Seed:
+            if yo != [6, 1] and yo != [7, 1] and yo != [10, 1]:
                 for ha in hand:
-                    if ha != [6, 1] and [7, 1] and [10, 1]:
+                    if ha != [6, 1] and ha != [7, 1] and ha != [10, 1]:
                         for fi in field:
-                           if  fi == [6, 1] or [7, 1] or [10, 1]:
-                               print("猪鹿蝶を防いだ！")
-                               return fi
+                           if fi == [7, 1]:
+                                for le in legal_actions:
+                                    if le ==[7, 2] or le == [7, 3] or le == [7, 4]:
+                                     print("猪鹿蝶を防いだ！")
+                                     return le
+                           elif fi == [6, 1]:
+                                for le in legal_actions:
+                                   if le ==[6, 2] or le == [6, 3] or le == [6, 4]:
+                                    print("猪鹿蝶を防いだ！")
+                                    return le
+                           elif fi == [10, 1]:
+                                for le in legal_actions:
+                                   if le ==[10, 2] or le == [10, 3] or le == [10, 4]:
+                                    print("猪鹿蝶を防いだ！")
+                                    return le
         return None
     
-    # def aotan_husegu(self, hand, field, legal_actions):
-    #     for se in self:
-    #         if se !=
-                    
+    def aotan_husegu(self, hand, field, legal_actions, your_Ribbon):
+        for yo in your_Ribbon:
+             if yo != [6, 2] and yo != [9, 2] and yo != [10, 2]:
+                 for ha in hand:
+                    if ha != [6, 2] and ha != [9, 2] and ha != [10, 2]:
+                        for fi in field:
+                            if fi == [6, 2]:
+                                for le in legal_actions:
+                                    if le == [6, 1] or le == [6, 3] or le == [6, 4]:
+                                        print("青たんを防いだ！")
+                                        return le
+                            elif fi == [10, 2]:
+                                for le in legal_actions:
+                                    if le == [10, 1] or le == [10, 3] or le == [10, 4]:
+                                        print("青たんを防いだ！")
+                                        return le
+                            elif fi == [9, 2]:
+                                for le in legal_actions:
+                                    if le == [9, 1] or le == [9, 3] or le == [9, 4]:
+                                        print("青たんを防いだ！")
+                                        return le
+        return None
+
+    def akatan_husegu(self, hand, field, legal_actions, your_Ribbon):
+        for yo in your_Ribbon:
+            if yo != [1, 2] and yo != [2, 2] and yo != [3, 2]:
+                for ha in hand:
+                    if ha != [1, 2] and ha != [2, 2] and ha != [3, 2]:
+                        for fi in field:
+                            if fi == [2, 2]:
+                                for le in legal_actions:
+                                    if le == [2, 1] or le == [2, 3] or le == [2, 4]:
+                                        print("赤たんを防いだ！")
+                                        return le
+                            elif fi == [1, 2]:
+                                for le in legal_actions:
+                                    if le == [1, 1] or le == [1, 3] or le == [1, 4]:
+                                        print("赤たんを防いだ！")
+                                        return le
+                            elif fi == [3, 2]:
+                                for le in legal_actions:
+                                    if le == [3, 1] or le == [3, 3] or le == [3, 4]:
+                                        print("赤たんを防いだ！")
+                                        return le
+        return None
+                           
             
-    def decide_tan_or_tane():
-    #手持ちと獲得した札でタン>=タネのとき
-    # タンとる
-    # タン: 手持ちに多いのが赤たんなら赤たん、青タンなら青たん優先
-    # タン<タネ
-    # タネ取る
+    def decide_tan_or_tane(self, your_Ribbon, your_Seed,legal_actions):
+        my_Ribbon = []
+        my_Seed = []
+        my_Ribbon += your_Ribbon
+        my_Seed += your_Seed
+        for legal_action in legal_actions:
+            if legal_action[1] == 2:
+                my_Ribbon.append(legal_action)
+            elif legal_action[1] == 1:
+                my_Seed.append(legal_action)
+        if len(my_Ribbon) >= len(my_Seed):
+            blue = []
+            red = []
+            for legal_action in legal_actions:
+                if legal_action[1] == 2:
+                    if legal_action[0] == 6 or legal_action[0] == 10 or legal_action[0] == 12:
+                        blue.append(legal_action)
+                    else:
+                        red.append(legal_action)
+            if len(blue) > len(red):
+                print('青タンを取りました',blue[0])
+                return blue[0]
+            else:
+                print('赤タンを取りました',red[0])
+                return red[0]
+        else:
+           for legal_action in legal_actions:
+                if legal_action[1] == 1:
+                     print('タネを取りました',legal_action)
+                     return legal_action
+        
         return None
         
     def sort_by_kasu_value(self,data, value_order_1, value_order_2):
@@ -135,7 +214,6 @@ class MyAgent(CustomAgentBase):
         return sorted(data, key=sort_key)
             
     def only_kasu(self, legal_actions):
-        # 4 5 >11>2>6,7,10>12>1>3,8>9
         value_order_1 = [4, 5, 11, 2, 6, 7, 10, 12, 1, 3, 8, 9]
         value_order_2 = [1,2,3,4]
         sorted_cards = self.sort_by_kasu_value(legal_actions, value_order_1, value_order_2)
@@ -143,7 +221,7 @@ class MyAgent(CustomAgentBase):
         if sorted_cards == []:
             return None
         else:
-            print('kasu')
+            print('カスとったよ',sorted_cards[0])
             return sorted_cards[0]
 
 
@@ -165,19 +243,19 @@ class MyAgent(CustomAgentBase):
             print('カードを捨てました',sorted_cards[0])
             return sorted_cards[0] 
     
-    # def should_koikoi(self, your_yaku, your_score, op_score):
-    #     """こいこいするかどうかを判断する"""
-    #     if your_yaku == []:
-    #         return False  # 役がない場合はこいこいしない
+    def should_koikoi(self, your_yaku, your_score, op_score):
+        """こいこいするかどうかを判断する"""
+        if your_yaku == []:
+            return False  # 役がない場合はこいこいしない
         
-    #     total_yaku_points = sum(yaku[1] for yaku in your_yaku)
+        total_yaku_points = sum(yaku[1] for yaku in your_yaku)
         
-    #     # スコアが近い場合、より積極的にこいこいする
-    #     if abs(your_score - op_score) <= 3:
-    #         return True
+        # スコアが近い場合、より積極的にこいこいする
+        if abs(your_score - op_score) <= 3:
+            return True
         
-    #     # スコアが離れている場合、より慎重にこいこいする
-    #     return False
+        # スコアが離れている場合、より慎重にこいこいする
+        return False
 
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
@@ -185,6 +263,8 @@ class MyAgent(CustomAgentBase):
         field = observation['field']
         your_yaku = observation['your_yaku']
         your_score = observation['your_total_point']
+        your_Seed = observation['your_Seed']
+        your_Ribbon = observation["your_Ribbon"]
         op_score = observation['op_total_point']
         game_state = observation['state']
         koikoi_situation = observation['koikoi']
@@ -193,6 +273,8 @@ class MyAgent(CustomAgentBase):
         print('--------data----------')
         print('hand', hand)
         print('field', field)
+        print('your_Seed', your_Seed)
+        print('your_ribbon', your_Ribbon)
         # print('your_yaku', your_yaku)
         # print('your_score', your_score)
         # print('op_score', op_score)
@@ -209,11 +291,22 @@ class MyAgent(CustomAgentBase):
             elif self.hikari(hand, field, legal_actions) != None:
                 return self.hikari()
             
-            elif self.inosikatyo_husegu(hand, field, legal_actions, your_yaku) != None:
-                return self.inosikatyo_husegu(hand, field, legal_actions)
+            elif self.inosikatyo_husegu(hand, field, legal_actions, your_Seed) != None:
+                return self.inosikatyo_husegu(hand, field, legal_actions, your_Seed)
             
-            elif self.only_kasu(self, legal_actions) != None:
-                return self.only_kasu(self, legal_actions)
+            elif self.aotan_husegu(hand, field, legal_actions, your_Ribbon) != None:
+                return self.aotan_husegu(hand, field, legal_actions, your_Ribbon)
+            
+            elif self.akatan_husegu(hand, field, legal_actions, your_Ribbon) != None:
+                return self.akatan_husegu(hand, field, legal_actions, your_Ribbon)
+
+            #たんとたねの数を比べて多い方を取る
+            elif self.decide_tan_or_tane(your_Ribbon, your_Seed,legal_actions) != None:
+                return self.decide_tan_or_tane(your_Ribbon, your_Seed,legal_actions)
+            
+            #カスだけ取れるなら取る
+            elif self.only_kasu(legal_actions) != None:
+                return self.only_kasu(legal_actions)
             
             # 何も取れない時 4 5 >11>2>6,7,10>12>1>3,8>9 の順でカス捨てる
             elif self.dispose_kasu(hand,field,legal_actions) != None:
@@ -221,18 +314,15 @@ class MyAgent(CustomAgentBase):
             
             else:
                 return random.choice(observation['legal_action'])
+        
+        elif game_state == 'koikoi':
+            if legal_actions[0] is not None:
+                return self.should_koikoi(your_yaku, your_score, op_score)
+            else:
+                return legal_actions[0]
+
         else:
             return random.choice(observation['legal_action'])
-
-        # if game_state == 'discard':
-        #     return self.find_matching_card(self, hand, field)
-        # elif game_state == 'koikoi':
-        #     if legal_actions[0] is not None:
-        #         return self.should_koikoi(self,your_yaku, your_score, op_score)
-        #     else:
-        #         return legal_actions[0]
-        # else:
-        #     return random.choice(observation['legal_action'])
 
 
 if __name__ == "__main__":
