@@ -1,11 +1,11 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import socketio
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import eventlet
-from koikoigame.koikoigame import KoiKoiGameState
+from koikoigame.koikoigame.koikoigame import KoiKoiGameState
 import random
-from koikoigame.koikoiagent import Agent 
+from koikoigame.koikoigame.koikoiagent import Agent 
 sio = socketio.Server()
 app = socketio.WSGIApp(sio)
 
