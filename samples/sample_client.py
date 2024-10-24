@@ -267,20 +267,7 @@ class MyAgent(CustomAgentBase):
         your_Ribbon = observation["your_Ribbon"]
         op_score = observation['op_total_point']
         game_state = observation['state']
-        koikoi_situation = observation['koikoi']
         legal_actions = observation['legal_action']
-        
-        print('--------data----------')
-        print('hand', hand)
-        print('field', field)
-        print('your_Seed', your_Seed)
-        print('your_ribbon', your_Ribbon)
-        # print('your_yaku', your_yaku)
-        # print('your_score', your_score)
-        # print('op_score', op_score)
-        print('game_state', game_state)
-        # print('koikoi_situation', koikoi_situation)
-        print('legal_actions', legal_actions)
 
         if game_state == 'discard':
             #9のタネ取れるなら取る
