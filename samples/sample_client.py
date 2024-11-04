@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     sio_client = SocketIOClient(
         ip="localhost",
-        port=5000,
+        port=5001,
         namespace="/koi-koi",
         agent=my_agent,
         room_id=123,

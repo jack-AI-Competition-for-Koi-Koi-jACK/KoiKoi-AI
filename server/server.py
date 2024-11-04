@@ -6,10 +6,20 @@ import eventlet
 from koikoigame.koikoigame import KoiKoiGameState
 import random
 from koikoigame.koikoiagent import Agent 
-sio = socketio.Server()
+sio = socketio.Server(
+    cors_allowed_origins=[
+        '*',"http://localhost:3000"
+    ],
+    async_mode='eventlet',
+    logger=True,
+    engineio_logger=True
+)
 app = socketio.WSGIApp(sio)
 
 rooms = {}
+
+
+
 
 # 接続時
 @sio.event(namespace='/koi-koi')
@@ -158,4 +168,4 @@ def end_game(room_id):
         # ルームをクリーンアップ
         del rooms[room_id]    
 if __name__ == '__main__':
-    eventlet.wsgi.server(eventlet.listen(('', 5000)), app)
+    eventlet.wsgi.server(eventlet.listen(('', 5001)), app)
