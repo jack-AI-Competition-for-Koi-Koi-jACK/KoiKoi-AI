@@ -50,24 +50,29 @@ class MyAgent(CustomAgentBase):
         self.barnum_choice_5= [[9,1],[3,1],[8,1],[1,1],[12,1],[9,2],[11,1],[6,2],[10,2],[3,2],[6,1],[10,1],[1,2],[2,2],[7,1],[7,2],[11,3],[4,2],[5,2],[2,1],[4,1],[5,1],[8,2],[11,2],[9,3],[9,4],[3,3],[3,4],[8,3],[8,4],[1,3],[1,4],[11,4],[6,3],[6,4],[10,3],[10,4],[7,3],[7,4],[12,2],[12,3],[12,4],[2,3],[2,4],[4,3],[4,4],[5,3],[5,4]]
 
     def custom_act(self, observation):
+        #if random.random() <= 0.5 :
+            #choice_card = self.barnum_choice_2
+        #else:
+            #choice_card = self.barnum_choice_5
+
         if observation.state == "discard":
             # 組み合わせられる順に選ぶ
-            for hand in self.barnum_choice_2:
+            for hand in self.barnum_choice_5:
                 if hand in observation['your_hand']&observation['field']:
                     return hand
             # なければ，逆順で選ぶ
-            for hand in self.barnum_choice_2[::-1]:
+            for hand in self.barnum_choice_5[::-1]:
                 if hand in observation['your_hand']:
                     return hand
                 
         
         elif observation.state == "discard-pick":
-            for hand in self.barnum_choice_2:
+            for hand in self.barnum_choice_5:
                 if hand in observation['legal_action']:
                     return hand
         
         elif observation.state == "draw-pick":
-            for hand in self.barnum_choice_2:
+            for hand in self.barnum_choice_5:
                 if hand in observation['legal_action']:
                     return hand
         elif observation.state == "koikoi":
@@ -117,4 +122,4 @@ if __name__ == "__main__":
     sio_client.run()
     # sio.client.enter_room()
 
-    
+
