@@ -6,24 +6,29 @@ Created on Sat Oct 16 23:06:35 2021
 @author: guansanghai
 """
 
-import torch
-import numpy as np
-import random
-from collections import namedtuple
-
-import os
-import time
-import pickle
 import multiprocessing
+import os
+import pickle
+import random
+import sys
+import time
+from collections import namedtuple
+from tqdm import tqdm
 
-from koikoigame.koikoigame import koikoigame
+import numpy as np
+import torch
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import base_models.koikoilearn as koikoilearn
-from base_models.koikoinet2L import DiscardModel, PickModel, KoiKoiModel, TargetQNet
+from base_models.koikoinet2L import DiscardModel, KoiKoiModel, PickModel, TargetQNet
+from koikoigame.koikoigame import koikoigame
+from koikoigame.koikoigame.koikoigame import KoiKoiCard
 
 # training settings
 task_name = "point"  # wp, point
-log_path = f"log_rl_{task_name}.txt"
-rl_folder = f"model_rl_{task_name}"
+log_path = f"outputs/log_rl_{task_name}.txt"
+rl_folder = f"outputs/model_rl_{task_name}"
 
 # continue training with trained models
 start_loop_num = 1
@@ -36,7 +41,7 @@ saved_model_path = {
 assert task_name in ["point", "wp"]
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-with open("win_prob_mat.pkl", "rb") as f:
+with open("base_models/win_prob_mat.pkl", "rb") as f:
     win_prob_mat = pickle.load(f)
 
 TraceSlot = namedtuple("TraceSlot", ["key", "state", "action"])
@@ -203,8 +208,11 @@ def get_value_action_net(action_net_path, value_net):
 
 
 def parallel_sampling(agent, n_games):
+    print("start p s")
     trace_simulator = TraceSimulator(agent)
+    print("start ts")
     sample_dict = trace_simulator.random_make_games(n_games)
+    print("end p s")
     return sample_dict
 
 
@@ -248,11 +256,69 @@ def random_action_prob_scheduler(score):
         p = [0.05] * 4
     return p
 
+def yaku(self, player):
+        """
+        コイコイの役をplayer毎に判定することを起こす
+        ----------------------------
+        入力:
+            player : int
+        出力:
+            yaku : tuple 役名の判定
+
+        """
+
+        yaku = []
+        pile = set([tuple(card) for card in self.pile[player]])
+        koikoi_num = self.koikoi_num[player]
+
+        num_light = len(pile & KoiKoiCard.light)
+        if num_light == 5:
+            yaku.append((1, "Five Lights", 10))
+        elif num_light == 4 and (11, 1) not in pile:
+            yaku.append((2, "Four Lights", 8))
+        elif num_light == 4:
+            yaku.append((3, "Rainy Four Lights", 7))
+        elif num_light == 3 and (11, 1) not in pile:
+            yaku.append((4, "Three Lights", 5))
+
+        num_seed = len(pile & KoiKoiCard.seed)
+        if KoiKoiCard.boar_deer_butterfly.issubset(pile):
+            yaku.append((5, "Boar-Deer-Butterfly", 5))
+        if KoiKoiCard.flower_sake.issubset(pile) and koikoi_num == 0:
+            yaku.append((6, "Flower Viewing Sake", 1))
+        elif KoiKoiCard.flower_sake.issubset(pile) and koikoi_num > 0:
+            yaku.append((7, "Flower Viewing Sake", 3))
+        if KoiKoiCard.moon_sake.issubset(pile) and koikoi_num == 0:
+            yaku.append((8, "Moon Viewing Sake", 1))
+        elif KoiKoiCard.moon_sake.issubset(pile) and koikoi_num > 0:
+            yaku.append((9, "Moon Viewing Sake", 3))
+        if num_seed >= 5:
+            yaku.append((10, "Tane", num_seed - 4))
+
+        num_ribbon = len(pile & KoiKoiCard.ribbon)
+        if (KoiKoiCard.red_ribbon | KoiKoiCard.blue_ribbon).issubset(pile):
+            yaku.append((11, "Red & Blue Ribbons", 10))
+        if KoiKoiCard.red_ribbon.issubset(pile):
+            yaku.append((12, "Red Ribbons", 5))
+        if KoiKoiCard.blue_ribbon.issubset(pile):
+            yaku.append((13, "Blue Ribbons", 5))
+        if num_ribbon >= 5:
+            yaku.append((14, "Tan", num_ribbon - 4))
+
+        num_dross = len(pile & KoiKoiCard.dross)
+        if num_dross >= 10:
+            yaku.append((15, "Kasu", num_dross - 9))
+
+        if koikoi_num > 0:
+            yaku.append((16, "Koi-Koi", koikoi_num))
+
+        return yaku
+
 
 criterion = torch.nn.SmoothL1Loss(beta=30.0).to(device)
 
 master_discard_net, master_pick_net, master_koikoi_net = get_master_net()
-master_agent = koikoilearn.Agent(master_discard_net, master_pick_net, master_koikoi_net)
+master_agent = koikoilearn.BaseAgent(master_discard_net, master_pick_net, master_koikoi_net)
 
 
 # Monte-Carlo learning with self-play
@@ -260,11 +326,12 @@ if __name__ == "__main__":
     if not os.path.isdir(rl_folder):
         os.mkdir(rl_folder)
 
-    cpu_count = 48
-    loop_games = 480
+    cpu_count = 4
+    loop_games = 4
     n_core_games = loop_games // cpu_count
 
     batch_size = 256
+    max_loop = 100000
 
     n_loop_action_net_update = 5
     n_loop_arena_test = 5
@@ -295,7 +362,7 @@ if __name__ == "__main__":
     for key in ["discard", "pick", "koikoi"]:
         value_net[key].to(device)
 
-    play_agent = koikoilearn.Agent(
+    play_agent = koikoilearn.BaseAgent(
         action_net["discard"],
         action_net["pick"],
         action_net["koikoi"],
@@ -315,19 +382,27 @@ if __name__ == "__main__":
 
     score = [0.0]
     print_log(f"\n{time_str()} start training", log_path)
-    for loop in range(start_loop_num, 100000):
+    for loop in tqdm(range(start_loop_num, max_loop)):
+        print(f"loop {loop}")
         # buffer.extend(parallel_sampling(play_agent, n_core_games))
         #'''
         # paralell make trace
         pool = multiprocessing.Pool(cpu_count)
+        c = 0
         for _ in range(cpu_count):
             pool.apply_async(
                 parallel_sampling,
                 args=(play_agent, n_core_games),
                 callback=buffer.extend,
             )
+            c += 1
+            print(f"multi {c}")
+
+        print("multi end")
         pool.close()
+        print("close")
         pool.join()
+        print("join")
         #'''
         n_sample = [len(buffer.memory[key]) for key in ["discard", "pick", "koikoi"]]
         print_log(
@@ -347,6 +422,9 @@ if __name__ == "__main__":
                 # predict q values
                 q_values = value_net[key](state_batch).squeeze(1)
                 # train
+                print(q_values)
+                print(reward_batch)
+                exit()
                 loss = criterion(q_values, reward_batch)
                 optimizer[key].zero_grad()
                 loss.backward()
@@ -372,13 +450,13 @@ if __name__ == "__main__":
             }
             for model_key, net_key in type_dict.items():
                 action_net[net_key].load_state_dict(value_net[net_key].state_dict())
-            play_agent = koikoilearn.Agent(
+            play_agent = koikoilearn.BaseAgent(
                 action_net["discard"],
                 action_net["pick"],
                 action_net["koikoi"],
                 random_action_prob=random_action_prob_scheduler(score[-1]),
             )
-            test_agent = koikoilearn.Agent(
+            test_agent = koikoilearn.BaseAgent(
                 action_net["discard"], action_net["pick"], action_net["koikoi"]
             )
 
@@ -403,7 +481,7 @@ if __name__ == "__main__":
                 with open(f"{rl_folder}/optimizer.pickle", "wb") as f:
                     pickle.dump(optimizer, f)
                 print_log(f"{time_str()}  New model saved.", log_path)
-            play_agent = koikoilearn.Agent(
+            play_agent = koikoilearn.BaseAgent(
                 action_net["discard"],
                 action_net["pick"],
                 action_net["koikoi"],

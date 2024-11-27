@@ -87,3 +87,11 @@ Game over. Final results: Games played: 10, nunuWins: 7, AIWins: 3, Draws: 0
 Disconnected from server
 Winner of this game: Player 1
 ```
+
+# チーム内向けメモ
+
+## 学習
+- `singularity shell --nv --bind $HOME /share/koikoi_organizers/koikoi_3.8.17.sif`
+- `python base_models/sl_train.py --w_yaku_loss=1.0 --task_name=discard --epochs=50 --batch=512`
+
+- `task_name`は， `discard`, `pick`, `koikoi` から選択してそれぞれのモデルを学習
