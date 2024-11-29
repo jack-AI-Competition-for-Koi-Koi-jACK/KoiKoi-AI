@@ -8,7 +8,7 @@ import random
 from koikoigame.koikoiagent import Agent 
 sio = socketio.Server(
     cors_allowed_origins=[
-        '*',"http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173"
+        '*',"http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173","http://0.0.0.0:5173",
     ],
     async_mode='eventlet',
     logger=True,
@@ -169,3 +169,4 @@ def end_game(room_id):
         del rooms[room_id]    
 if __name__ == '__main__':
     eventlet.wsgi.server(eventlet.listen(('', 5001)), app)
+
