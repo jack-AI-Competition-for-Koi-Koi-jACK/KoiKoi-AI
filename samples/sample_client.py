@@ -13,6 +13,8 @@ from client.agent import CustomAgentBase
 class MyAgent(CustomAgentBase):
     def __init__(self):
         super().__init__()
+        self.card_importance = [[0,0,0,0,0],[0,30,30,10,10],[0,10,30,10,10],[0,100,30,10,10],[0,10,20,10,10],[0,10,20,10,10],[0,30,30,10,10],[0,30,20,10,10],[0,100,10,10,10],[0,1000,30,10,10],[0,30,30,10,10],[0,15,10,20,10],[0,30,10,10,10]]
+        self.importance_sum = [0,80,60,150,50,50,80,70,120,1050,80,55,50]
         f = open("log.txt", "w")
         f.close()
 
@@ -39,57 +41,78 @@ class MyAgent(CustomAgentBase):
                 return observation["legal_action"][1]
             return observation["legal_action"][0]
         if observation["state"] == "discard-pick" or observation["state"] == "draw-pick":
-            return random.choice(observation["legal_action"])
+            score = [0]*(len(observation["legal_action"]))
+            for idx, x in enumerate(observation["legal_action"]):
+                score[idx] = self.card_importance[x[0]][x[1]]
+            return observation["legal_action"][score.index(max(score))]
         if observation["state"] == "discard":
             field_num = [0]*13
             hand_num = [0]*13
             picked_num = [0]*13
+            minus_point = [0]*13
+            card_num = [4]*13
             for i in observation["field"]:
                 field_num[i[0]] += 1
             for i in observation["your_hand"]:
                 hand_num[i[0]] += 1
             for i in observation["op_Light"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             for i in observation["op_Seed"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             for i in observation["op_Ribbon"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             for i in observation["op_Dross"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             for i in observation["your_Light"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             for i in observation["your_Seed"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             for i in observation["your_Ribbon"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             for i in observation["your_Dross"]:
+                minus_point[i[0]] += self.card_importance[i[0]][i[1]]
                 picked_num[i[0]] += 1
+                card_num[i[0]] -= 1
             score = [0]*(len(observation["legal_action"]))
             for idx, x in enumerate(observation["legal_action"]):
                 month = x[0]
                 if(picked_num[month]+field_num[month]+hand_num[month] == 4):
-                    score[idx] = 3
+                    score[idx] = self.card_importance[month][x[1]]
                 elif(field_num[month] == 0):
                     if(picked_num[month] == 2):
-                        score[idx] = 5
+                        score[idx] = -(self.card_importance[month][x[1]])*1
                     elif(hand_num[month] == 1):
-                        score[idx] = 4
+                        score[idx] = -(self.card_importance[month][x[1]])*1.4
                     else:
-                        score[idx] = 6
+                        score[idx] = -(self.card_importance[month][x[1]])*0.6
                 elif(field_num[month] == 1):
                     if(hand_num[month] == 1):
-                        score[idx] = 0
+                        score[idx] = (self.importance_sum[month] - minus_point[month])/(card_num[month]) + self.card_importance[month][x[1]] + 2
                     else:
-                        score[idx] = 1
+                        score[idx] = (self.importance_sum[month] - minus_point[month])/(card_num[month]) + self.card_importance[month][x[1]] + 1
                 else:
-                    score[idx] = 2
+                    score[idx] = (self.importance_sum[month] - minus_point[month])/(card_num[month]) + self.card_importance[month][x[1]] 
             f = open("log.txt", "a")
             for i in score:
                 f.write(str(i))
                 f.write(" ")
             f.write("\n")
             f.close()
-            return observation["legal_action"][score.index(min(score))]
+            return observation["legal_action"][score.index(max(score))]
         return random.choice(observation["legal_action"])
 
 
