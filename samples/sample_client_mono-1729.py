@@ -14,25 +14,15 @@ from client.agent import CustomAgentBase
 class MyAgent(CustomAgentBase):
     def __init__(self):
         super().__init__()
-        self.card_importance_ = [[0,0,0,0,0],[0,40,30,10,10],[0,10,30,10,10],[0,100,30,10,10],[0,10,20,10,10],[0,10,20,10,10],[0,20,30,10,10],[0,20,20,10,10],[0,100,10,10,10],[0,1000,30,10,10],[0,20,30,10,10],[0,25,10,20,10],[0,40,10,10,10]]
-        self.importance_sum_ = [0,90,60,150,50,50,70,60,130,1050,70,65,70]
+        self.card_importance_ = [[0,0,0,0,0],[0,40,30,10,10],[0,10,30,10,10],[0,200,30,10,10],[0,10,20,10,10],[0,10,20,10,10],[0,20,30,10,10],[0,20,20,10,10],[0,200,10,10,10],[0,1000,30,10,10],[0,20,30,10,10],[0,25,10,20,10],[0,40,10,10,10]]
+        self.importance_sum_ = [0,90,60,250,50,50,70,60,230,1050,70,65,70]
         self.light = [1,3,8,11,12]
         self.inoshika = [6,7,10]
         self.aka = [1,2,3]
         self.ao = [6,9,10]
-        # f = open("log.txt", "w")
-        # f.close()
 
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
-        # f = open("log.txt", "a")
-        # f.write(observation["state"])
-        # f.write("\n")
-        # for i in observation["legal_action"]:
-        #     f.write(str(i))
-        #     f.write(" ")
-        # f.write("\n")
-        # f.close()
         if len(observation["legal_action"]) == 1:
             return observation["legal_action"][0]
         if observation["state"] == "koikoi":
@@ -160,12 +150,6 @@ class MyAgent(CustomAgentBase):
                         score[idx] = 100 + (importance_sum[month] - minus_point[month])/(card_num[month]) + card_importance[month][x[1]]/4 + 1
                 else:
                     score[idx] = 100 + (importance_sum[month] - minus_point[month])/(card_num[month]) + card_importance[month][x[1]]/4
-            # f = open("log.txt", "a")
-            # for i in score:
-            #     f.write(str(i))
-            #     f.write(" ")
-            # f.write("\n")
-            # f.close()
             return observation["legal_action"][score.index(max(score))]
         return random.choice(observation["legal_action"])
 
