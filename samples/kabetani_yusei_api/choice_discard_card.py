@@ -1,7 +1,8 @@
 import time
 import random
 import numpy as np
-import kabetani_yusei_api.yaku as YAKU
+# import kabetani_yusei_api.yaku as YAKU
+import yaku as YAKU
 
 
 class ChoiceDiscardCard:
@@ -177,16 +178,13 @@ class ChoiceDiscardCard:
         '''
         未使用のカードからランダムに山札と手札を作成する
         '''
-        pile = []
-        hand = []
-        for _ in range(pile_num):
-            card = random.choice(unplayed_card)
-            pile.append(card)
-            unplayed_card.remove(card)
-        for _ in range(op_hand_num):
-            card = random.choice(unplayed_card)
-            hand.append(card)
-            unplayed_card.remove(card)
+        # 一度に必要なカードを全てランダム選択
+        total_cards_needed = pile_num + op_hand_num
+        selected_cards = random.sample(unplayed_card, total_cards_needed)
+
+        # 最初の pile_num 枚を山札、次の op_hand_num 枚を手札に分ける
+        pile = selected_cards[:pile_num]
+        hand = selected_cards[pile_num:]
         return pile, hand
 
 
