@@ -194,4 +194,4 @@ class ChoicePickCard:
         '''
         シグモイド関数っぽいやつ(xを4で割っている)
         '''
-        return 1 / (1 + np.exp(-(x / 4)))
+        return 2 / (1 + np.exp(-(x / 4))) - 1
