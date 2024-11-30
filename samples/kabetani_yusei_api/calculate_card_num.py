@@ -25,7 +25,7 @@ class CalculateCardNum:
             else:
                 pile_num = 22 - 2 * (now_turn - 1)
 
-        return (pile_num, op_hand_num)
+        return pile_num, op_hand_num
 
 
     def _first_player_check(self, observation):

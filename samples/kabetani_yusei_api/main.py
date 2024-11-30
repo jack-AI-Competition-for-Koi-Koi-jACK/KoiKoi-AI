@@ -37,10 +37,10 @@ class KabetaniYuseiAPI:
         '''
         # 未使用のカードを探す
         unplayed_card = UNPLAYED_CARD_FINDER.find(observation)
-        pile_num, op_hand_num = CALCULATE_CARD_NUM(observation)
+        pile_num, op_hand_num = CALCULATE_CARD_NUM.calculate(observation)
         # stateに応じて行動を決定する
         if observation['state'] == 'discard':
-            return DISCARD_API.choie(observation, unplayed_card, pile_num, op_hand_num)
+            return DISCARD_API.choice(observation, unplayed_card, pile_num, op_hand_num)
 
         elif observation['state'] == 'discard-pick' or observation['state'] == 'draw-pick':
             return PICK_API.choice(observation, unplayed_card, pile_num, op_hand_num)
