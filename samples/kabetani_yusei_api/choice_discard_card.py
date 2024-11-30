@@ -1,8 +1,7 @@
 import time
 import random
 import numpy as np
-# import kabetani_yusei_api.yaku as YAKU
-import yaku as YAKU
+import kabetani_yusei_api.yaku as YAKU
 
 
 class ChoiceDiscardCard:
