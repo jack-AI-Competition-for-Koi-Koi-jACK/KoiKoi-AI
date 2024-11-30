@@ -6,9 +6,10 @@ import eventlet
 from koikoigame.koikoigame import KoiKoiGameState
 import random
 from koikoigame.koikoiagent import Agent 
+from samples.sample_client import MyAgent
 sio = socketio.Server(
     cors_allowed_origins=[
-        '*',"http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173","http://0.0.0.0:5173",
+        '*',"http://localhost:3000","http://localhost:5173","http://127.0.0.1:5173","http://0.0.0.0:5173","http://localhost:5001",
     ],
     async_mode='eventlet',
     logger=True,
@@ -36,7 +37,7 @@ def disconnect(sid):
 @sio.on('enter_room', namespace='/koi-koi')
 def enter_room(sid, data):
     print(f"Sending enter_room event with data: {data}")  # デバッグ出力
-    room_id = data['room_id']
+    room_id = int(data['room_id'])
     player_name = data['player_name']
     mode = data['mode']
     num_games = data.get('num_games', 1)
@@ -57,7 +58,7 @@ def enter_room(sid, data):
         
 @sio.on('action', namespace='/koi-koi')
 def on_action(sid, data):
-    room_id = data['room_id']
+    room_id = int(data['room_id'])
     action = data['action']
     game = rooms[room_id]['game']
 
@@ -92,7 +93,7 @@ def start_game(room_id):
         # AIプレイヤーを追加
         if len(rooms[room_id]['players']) == 1:  # AIプレイヤーがまだ追加されていない場合
             print("Creating AI agent")
-            ai_agent = Agent()
+            ai_agent = MyAgent()
             rooms[room_id]['ai_agent'] = ai_agent
             rooms[room_id]['players'].append((None, 'AI'))
             
@@ -111,11 +112,14 @@ def ask_for_action(room_id, player):
         print("Round is over. Starting a new round or ending the game.")
         start_new_round(room_id)
         return
+    
+    # プレイヤーのsidと名前を取得
+    player_sid, player_name = rooms[room_id]['players'][player - 1]
 
     if rooms[room_id]['mode'] == 1 and player == 2:
         print("AI's turn")
         ai_agent = rooms[room_id]['ai_agent']
-        action = ai_agent.auto_action(observation)
+        action = ai_agent.custom_act(observation)
         print(f"AI action: {action}")
         on_action(None, {'room_id': room_id, 'action': action})
     else:
