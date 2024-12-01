@@ -82,7 +82,6 @@ class ChoicePickCard:
                 continue
             ## 自分と相手の手札がなくなった場合
             if len(my_hand) == 0 and len(op_hand) == 0:
-                score += 0.5
                 attempt += 1
                 continue
 
@@ -121,7 +120,6 @@ class ChoicePickCard:
                     break
                 ## 自分と相手の手札がなくなった場合
                 if len(my_hand) == 0 and len(op_hand) == 0:
-                    score += 0.5
                     attempt += 1
                     break
 
@@ -157,7 +155,6 @@ class ChoicePickCard:
                     break
                 ## 自分と相手の手札がなくなった場合
                 if len(my_hand) == 0 and len(op_hand) == 0:
-                    score += 0.5
                     attempt += 1
                     break
         # print("is check")
