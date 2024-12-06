@@ -26,7 +26,9 @@ class MyAgent(CustomAgentBase):
         
         
         # ランダムに取れる行動をする
-        return random.choice(observation.legal_actions())
+        print(f"observation is {observation}")
+        legal_actions = observation["legal_action"]
+        return random.choice(legal_actions)
 
 
 if __name__ == "__main__":
@@ -42,7 +44,7 @@ if __name__ == "__main__":
 
     sio_client = SocketIOClient(
         ip="localhost",
-        port=5000,
+        port=5001,
         namespace="/koi-koi",
         agent=my_agent,
         room_id=123,
