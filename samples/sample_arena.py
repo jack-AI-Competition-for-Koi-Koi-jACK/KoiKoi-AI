@@ -3,13 +3,16 @@ import os
 import random
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import numpy as np
+
 from client.client import SocketIOClient
 from client.agent import CustomAgentBase
 from koikoigame.koikoiagent import Arena
-import pickle
-import torch 
-import io
+from enpitu import EnpituAgent
+from hamao_mero import HamaoMeroAgent
+from mono import MonoAgent
+from sattun_min import SattunMinaAgent
+from yaduya_burnum import YaduyaBurnumAgent
+
 
 
 
@@ -19,9 +22,7 @@ class MyAgent(CustomAgentBase):
 
     def custom_act(self, observation):
         """盤面情報と取れる行動を受け取って，行動を決定して返す関数．参加者が各自で実装．"""
-        buffer=io.BytesIO(observation['feature_tensor'])
-        loaded_numpy_array = np.load(buffer)
-        print(loaded_numpy_array)
+        # ランダムに取れる行動をする
         return random.choice(observation["legal_action"])
 
 

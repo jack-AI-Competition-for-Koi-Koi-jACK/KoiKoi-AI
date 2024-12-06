@@ -44,7 +44,7 @@ class DiscardModel(nn.Module):
     def forward(self, x):
         x = self.encoder_block(x)
         x = self.out(x).squeeze(1)
-        return x
+        return torch.nn.functional.softmax(x, dim=1)
 
 
 class PickModel(nn.Module):
@@ -56,7 +56,7 @@ class PickModel(nn.Module):
     def forward(self, x):
         x = self.encoder_block(x)
         x = self.out(x).squeeze(1)
-        return x
+        return torch.nn.functional.softmax(x, dim=1)
 
 
 class KoiKoiModel(nn.Module):
@@ -68,7 +68,7 @@ class KoiKoiModel(nn.Module):
     def forward(self, x):
         x = self.encoder_block(x)
         x = self.out(x[:, :, [0, 1]]).squeeze(1)
-        return x
+        return torch.nn.functional.softmax(x, dim=1)
 
 
 class TargetQNet(nn.Module):
