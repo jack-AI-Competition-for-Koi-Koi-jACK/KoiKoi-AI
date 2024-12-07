@@ -61,19 +61,11 @@ class KateTakakuraAgent(CustomAgentBase):
             1, feature_tensor.shape[0], feature_tensor.shape[1]
         )
         if observation["state"] not in self.model.keys():
-            print("** FATAL: unknown state. model not found")
-            print(observation["state"])
-            print(legal_action)
+            pass
 
         output = self.model[observation["state"]](feature_tensor).squeeze(0).detach()
 
         action = self.output_to_legal_action(output, legal_action)
-        print("===")
-        print(output)
-        print(output.argmax())
-        print(observation["state"])
-        print(observation["legal_action"])
-        print(action)
 
         # print(f"a{feature_tensor.shape}")  # torch.Size([300, 48])
         # ランダムに取れる行動をする

@@ -18,85 +18,85 @@ class SattunMinaAgent(CustomAgentBase):
             if le == [9, 1]:
                 for fi in field:
                     if fi == [9, 2] or fi == [9, 3] or fi ==[9, 4]:
-                        print("9月のたねとれた！")
+                        
                         return [9, 1]
         for fie in field:
             if fie == [9, 1]:
                 for lea in legal_actions:
                     if lea == [9, 2] or lea == [9, 3] or lea ==[9, 4]:
-                        print("9月のたねとれた！",lea)
+                        
                         return lea
 
-        print("9月のたねとれなかった")
+        
         return None
     
     def hikari(self, hand, field, legal_actions):
-        print(legal_actions)
+        
         for le in legal_actions:
             if le == [3, 1]:
                 for fi in field:
                     if fi == [3, 2] or fi == [3, 3] or fi == [3, 4]:
-                        print("3月の光とれた！")
+                        
                         return [3, 1]
         for fie in field:
             if fie == [3, 1]:
                 for lea in legal_actions:
                     if lea == [3, 2] or lea == [3, 3] or lea == [3, 4]:
-                        print("3月の光とれた！",lea)
+                        
                         return lea
         
         for le in legal_actions:
             if le == [8, 1]:
                 for fi in field:
                     if fi == [8, 2] or fi == [8, 3] or fi == [8, 4]:
-                        print("8月の光とれた！")
+                        
                         return [8, 1]
         for fie in field:
             if fie == [8, 1]:
                 for lea in legal_actions:
                     if lea == [8, 2] or lea == [8, 3] or lea ==[8, 4]:
-                        print("8月の光とれた！",lea)
+                        
                         return lea
         
         for le in legal_actions:
             if le == [1, 1]:
                 for fi in field:
                     if fi == [1, 2] or fi == [1, 3] or fi == [1, 4]:
-                        print("1月の光とれた！")
+                        
                         return [1, 1]
         for fie in field:
             if fie == [1, 1]:
                 for lea in legal_actions:
                     if lea == [1, 2] or lea ==[1, 3] or lea ==[1, 4]:
-                        print("1月の光とれた！",lea)
+                        
                         return lea
         
         for le in legal_actions:
             if le == [12, 1]:
                 for fi in field:
                     if fi == [12, 2] or fi == [12, 3] or fi == [12, 4]:
-                        print("12月の光とれた！")
+                        
                         return [12, 1]
         for fie in field:
             if fie == [12, 1]:
                 for lea in legal_actions:
                     if lea == [12, 2] or lea ==[12, 3] or lea ==[12, 4]:
-                        print("12月の光とれた！",lea)
+                        
                         return lea
                     
         for le in legal_actions:
             if le == [11, 1]:
                 for fi in field:
                     if fi == [11, 2] or fi == [11, 3] or fi == [11, 4]:
-                        print("11月の光とれた！")
+                        
                         return [11, 1]
         for fie in field:
             if fie == [11, 1]:
                 for lea in legal_actions:
                     if lea == [11, 2] or lea ==[11, 3] or lea ==[11, 4]:
-                        print("11月の光とれた！",lea)
+                        
                         return lea
-        print("光札とれなかった")
+        
         return None
     
     def inosikatyo_husegu(self, hand, field, legal_actions, your_Seed):
@@ -108,17 +108,17 @@ class SattunMinaAgent(CustomAgentBase):
                            if fi == [7, 1]:
                                 for le in legal_actions:
                                     if le ==[7, 2] or le == [7, 3] or le == [7, 4]:
-                                     print("猪鹿蝶を防いだ！")
+                                     
                                      return le
                            elif fi == [6, 1]:
                                 for le in legal_actions:
                                    if le ==[6, 2] or le == [6, 3] or le == [6, 4]:
-                                    print("猪鹿蝶を防いだ！")
+                                    
                                     return le
                            elif fi == [10, 1]:
                                 for le in legal_actions:
                                    if le ==[10, 2] or le == [10, 3] or le == [10, 4]:
-                                    print("猪鹿蝶を防いだ！")
+                                    
                                     return le
         return None
     
@@ -131,17 +131,17 @@ class SattunMinaAgent(CustomAgentBase):
                             if fi == [6, 2]:
                                 for le in legal_actions:
                                     if le == [6, 1] or le == [6, 3] or le == [6, 4]:
-                                        print("青たんを防いだ！")
+                                        
                                         return le
                             elif fi == [10, 2]:
                                 for le in legal_actions:
                                     if le == [10, 1] or le == [10, 3] or le == [10, 4]:
-                                        print("青たんを防いだ！")
+                                        
                                         return le
                             elif fi == [9, 2]:
                                 for le in legal_actions:
                                     if le == [9, 1] or le == [9, 3] or le == [9, 4]:
-                                        print("青たんを防いだ！")
+                                        
                                         return le
         return None
 
@@ -154,17 +154,17 @@ class SattunMinaAgent(CustomAgentBase):
                             if fi == [2, 2]:
                                 for le in legal_actions:
                                     if le == [2, 1] or le == [2, 3] or le == [2, 4]:
-                                        print("赤たんを防いだ！")
+                                        
                                         return le
                             elif fi == [1, 2]:
                                 for le in legal_actions:
                                     if le == [1, 1] or le == [1, 3] or le == [1, 4]:
-                                        print("赤たんを防いだ！")
+                                        
                                         return le
                             elif fi == [3, 2]:
                                 for le in legal_actions:
                                     if le == [3, 1] or le == [3, 3] or le == [3, 4]:
-                                        print("赤たんを防いだ！")
+                                        
                                         return le
         return None
                            
@@ -189,15 +189,15 @@ class SattunMinaAgent(CustomAgentBase):
                     else:
                         red.append(legal_action)
             if len(blue) > len(red):
-                print('青タンを取りました',blue[0])
+                
                 return blue[0]
             else:
-                print('赤タンを取りました',red[0])
+                
                 return red[0]
         else:
            for legal_action in legal_actions:
                 if legal_action[1] == 1:
-                     print('タネを取りました',legal_action)
+                     
                      return legal_action
         
         return None
@@ -221,7 +221,7 @@ class SattunMinaAgent(CustomAgentBase):
         if sorted_cards == []:
             return None
         else:
-            print('カスとったよ',sorted_cards[0])
+            
             return sorted_cards[0]
 
 
@@ -237,10 +237,10 @@ class SattunMinaAgent(CustomAgentBase):
         sorted_cards = self.sort_by_kasu_value(legal_actions, value_order_1, value_order_2)
         
         if same_month == []:
-            print('捨てれるカードがありません')
+            
             return None
         else:
-            print('カードを捨てました',sorted_cards[0])
+            
             return sorted_cards[0] 
     
     def should_koikoi(self, your_yaku, your_score, op_score):

@@ -1,3 +1,4 @@
+from typing import Literal
 import numpy as np
 import random
 import pprint
@@ -56,11 +57,12 @@ class Arena:
             """
 
             return np.sum(np.array(l) == x)
-
+        self.test_point = {1: [], 2: []}
         if clear_result:
             self.clear_test_result()
         for ii in tqdm.tqdm(range(num_game)):
-            self.__duel()
+            winner =self.__duel()
+            
         self.test_win_num = [n_count(self.test_winner, ii) for ii in [0, 1, 2]]
         self.test_win_rate = [n / sum(self.test_win_num) for n in self.test_win_num]
         return
@@ -86,7 +88,7 @@ class Arena:
         self.test_point[1].append(self.game_state.point[1])
         self.test_point[2].append(self.game_state.point[2])
         self.test_winner.append(self.game_state.winner)
-        return
+        return self.game_state.winner
 
     def test_result_str(self):
         """
@@ -100,7 +102,17 @@ class Arena:
         s += f"({win_rate[1]:.2f}, {win_rate[2]:.2f}, {win_rate[0]:.2f}), "
         s += f"{np.mean(self.test_point[1]):.1f} points"
         return s
-
+    @property
+    def winner(self):
+        if self.test_win_num[1] > self.test_win_num[2]:
+            return 1
+        elif self.test_win_num[1] < self.test_win_num[2]:
+            return 2
+        else:
+            return 0
+    
+        
+        
     def clear_test_result(self):
         self.test_point = {1: [], 2: []}
         self.test_winner = []
