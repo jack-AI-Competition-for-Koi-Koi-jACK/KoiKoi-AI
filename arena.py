@@ -75,7 +75,7 @@ if __name__ == "__main__":
         for j in range(i+1,len(battle_list)):
             battle_result = ['draw', menber_list[i], menber_list[j]]
             arena = Arena(battle_list[i], battle_list[j])
-            arena.multi_game_test(1000)
+            arena.multi_game_test(100)
             print(arena.test_winner)
             print(menber_list[i],'vs',menber_list[j], arena.test_result_str())
             print(battle_result[arena.winner])
@@ -83,5 +83,5 @@ if __name__ == "__main__":
             df = pd.DataFrame(arena.test_winner, columns=[f'{menber_list[i]}vs{menber_list[j]}'])
             winner_df = pd.concat([winner_df, df], axis=1)
     
-    winner_df.to_csv('winner.csv')   
+    winner_df.to_csv('winner_100.csv')   
         
