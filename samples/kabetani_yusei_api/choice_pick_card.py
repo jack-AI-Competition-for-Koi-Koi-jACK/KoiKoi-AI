@@ -19,7 +19,7 @@ class ChoicePickCard:
 
         # シミュレーションをして、最も得点が高くなるカードを選択
         res = ([0, 0], -10) # (card, score)
-        time_limit = 2.5 / len(cand_card)
+        time_limit = 0.25 / len(cand_card)
         for card in cand_card:
             score = self._simulate(observation, unplayed_card, card, time_limit, pile_num, op_hand_num)
             if score > res[1]:

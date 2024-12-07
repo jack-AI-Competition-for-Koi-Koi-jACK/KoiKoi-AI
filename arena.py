@@ -62,8 +62,8 @@ if __name__ == "__main__":
     
     menber_list =[
         "Mono",
-        "Hamao Mero",
         "Enpitu",
+        "Hamao Mero",
         "SattunMina",
         "YaduyaBurnum",
         "KateTakakura",
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         for j in range(i+1,len(battle_list)):
             battle_result = ['draw', menber_list[i], menber_list[j]]
             arena = Arena(battle_list[i], battle_list[j])
-            arena.multi_game_test(100)
+            arena.multi_game_test(10)
             print(arena.test_winner)
             print(menber_list[i],'vs',menber_list[j], arena.test_result_str())
             print(battle_result[arena.winner])
