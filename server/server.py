@@ -94,7 +94,9 @@ def start_game(room_id):
 def ask_for_action(room_id, player):
     print(f"Asking for action in room {room_id} for player {player}")
     game = rooms[room_id]['game']
+    
     observation = game.observation
+
     print(f"Current game state: {game.round_state.state}") 
 
     if game.round_state.state == 'round-over':

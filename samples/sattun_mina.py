@@ -313,7 +313,7 @@ class SattunMinaAgent(CustomAgentBase):
 
 
 if __name__ == "__main__":
-    my_agent = MyAgent()  # 参加者が実装したプレイヤーをインスタンス化
+    my_agent = SattunMinaAgent()  # 参加者が実装したプレイヤーをインスタンス化
 
     mode = int(
         input(

@@ -49,10 +49,10 @@ class Arena:
         def n_count(l, x):
             """
             入力 :
-                 l : list
-                 x : int
+                l : list
+                x : int
             出力  :
-                 float
+                float
             """
 
             return np.sum(np.array(l) == x)
@@ -78,10 +78,12 @@ class Arena:
                 self.game_state.new_round()
             else:
                 if self.game_state.round_state.turn_player == 1:
-                    action = self.agent_1.custom_act(self.game_state.observation)
+                    observation = self.game_state.observation
+                    action = self.agent_1.act(observation)
                     self.game_state.round_state.step(action)
                 else:
-                    action = self.agent_2.custom_act(self.game_state.observation)
+                    observation=self.game_state.observation
+                    action = self.agent_2.act(observation)
                     self.game_state.round_state.step(action)
         self.test_point[1].append(self.game_state.point[1])
         self.test_point[2].append(self.game_state.point[2])

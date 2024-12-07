@@ -1,6 +1,9 @@
 import sys
 import os
 import random
+import os.path
+import io
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from client.client import SocketIOClient
@@ -54,11 +57,11 @@ class YaduyaBurnumAgent(CustomAgentBase):
             #choice_card = self.barnum_choice_2
         #else:
             #choice_card = self.barnum_choice_5
-
-        if observation.state == "discard":
+        
+        if observation['state'] == "discard":
             # 組み合わせられる順に選ぶ
             for hand in self.barnum_choice_5:
-                if hand in observation['your_hand']&observation['field']:
+                if hand in observation['your_hand']:
                     return hand
             # なければ，逆順で選ぶ
             for hand in self.barnum_choice_5[::-1]:
@@ -66,40 +69,41 @@ class YaduyaBurnumAgent(CustomAgentBase):
                     return hand
                 
         
-        elif observation.state == "discard-pick":
+        elif observation['state'] == "discard-pick":
             for hand in self.barnum_choice_5:
                 if hand in observation['legal_action']:
                     return hand
         
-        elif observation.state == "draw-pick":
+        elif observation['state'] == "draw-pick":
             for hand in self.barnum_choice_5:
                 if hand in observation['legal_action']:
                     return hand
-        elif observation.state == "koikoi":
-            #自分の現在の得点が相手より高いとき
-            #if round_point[1] > round_point[2]:
-                #print("RP1>RP2")
-                #return False
-            #5ターン以上が経過して役が完成したとき
-            if observation.turn >= 5 :
-                #print("5turn")
-                return False
-            #5点以上を獲得できるとき
-            elif observation.your_total_point >= 5 :
-                #print("5point")
-                return False
-            #相手がこいこいをしているとき
-            elif sum(observation.koikoi[2]) > 0 :
-                #print("koikoi")
-                return False
-            #上記のいずれにも該当しない場合はこいこい
-            else :
-                return True
+        elif observation['state'] == "koikoi":
+            # #自分の現在の得点が相手より高いとき
+            # #if round_point[1] > round_point[2]:
+            #     #print("RP1>RP2")
+            #     #return False
+            # #5ターン以上が経過して役が完成したとき
+            # if observation['turn'] >= 5 :
+            #     #print("5turn")
+            #     return False
+            # #5点以上を獲得できるとき
+            # elif observation['your_total_point'] >= 5 :
+            #     #print("5point")
+            #     return False
+            # #相手がこいこいをしているとき
+            # elif sum(observation.koikoi[2]) > 0 :
+            #     #print("koikoi")
+            #     return False
+            # #上記のいずれにも該当しない場合はこいこい
+            # else :
+            #     return True
+            return observation['legal_action'][0]
 
 
 if __name__ == "__main__":
 
-    my_agent = MyAgent()  # 参加者が実装したプレイヤーをインスタンス化
+    my_agent = YaduyaBurnumAgent()  # 参加者が実装したプレイヤーをインスタンス化
 
     mode = int(
         input(
@@ -111,7 +115,7 @@ if __name__ == "__main__":
 
     sio_client = SocketIOClient(
         ip="localhost",
-        port=5001,
+        port=5000,
         namespace="/koi-koi",
         agent=my_agent,
         room_id=123,

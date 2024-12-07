@@ -535,7 +535,7 @@ class EnpituAgent(CustomAgentBase):
             return _observation.opTotalPoint > _observation.ownTotalPoint
 
 if __name__ == "__main__":
-    my_agent = MyAgent()  # 参加者が実装したプレイヤーをインスタンス化
+    my_agent = EnpituAgent()  # 参加者が実装したプレイヤーをインスタンス化
 
     mode = int(
         input(

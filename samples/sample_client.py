@@ -24,9 +24,8 @@ class MyAgent(CustomAgentBase):
         buffer=io.BytesIO(observation['feature_tensor'])
         loaded_numpy_array = np.load(buffer)
         
-        
         # ランダムに取れる行動をする
-        return random.choice(observation.legal_actions())
+        return random.choice(observation.legal_actions)
 
 
 if __name__ == "__main__":
@@ -45,7 +44,7 @@ if __name__ == "__main__":
         port=5000,
         namespace="/koi-koi",
         agent=my_agent,
-        room_id=123,
+    room_id=123,
         player_name=player_name,
         mode=mode,
         num_games=num_games,

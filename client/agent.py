@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class CustomAgentBase(ABC):
+
     def __init__(self):
         super().__init__()
 

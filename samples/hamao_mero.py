@@ -31,7 +31,7 @@ class HamaoMeroAgent(CustomAgentBase):
             return random.choice(observation.legal_actions())
 
 if __name__ == "__main__":
-    my_agent = MyAgent()  # 参加者が実装したプレイヤーをインスタンス化
+    my_agent = HamaoMeroAgent()  # 参加者が実装したプレイヤーをインスタンス化
 
     mode = int(
         input(
