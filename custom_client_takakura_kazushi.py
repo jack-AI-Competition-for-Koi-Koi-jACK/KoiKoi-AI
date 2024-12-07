@@ -22,7 +22,7 @@ class DrawModel(torch.nn.Module):
         return torch.zeros((1, 1))
 
 
-class MyAgent(CustomAgentBase):
+class KateTakakuraAgent(CustomAgentBase):
     def __init__(self):
         super().__init__()
         checkpoint_dir = Path(os.path.abspath(__file__)).parent / "checkpoints"

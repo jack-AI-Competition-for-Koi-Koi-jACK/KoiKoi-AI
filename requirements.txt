@@ -19,7 +19,6 @@ pandas==2.0.3
 pillow==10.4.0
 pyasn1==0.6.0
 pyparsing==3.1.2
-PySimpleGUI==5.0.6
 python-dateutil==2.9.0.post0
 python-engineio==4.9.1
 python-socketio==5.11.3
